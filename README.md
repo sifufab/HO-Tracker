@@ -27,7 +27,19 @@ npx expo lint
 Wegen AdMob (native Bibliothek) läuft die App **nicht in Expo Go**. Für iOS/Android braucht es einen
 Development Build: `npx eas-cli@latest build --profile development --platform android` (bzw. `ios`).
 
-## Veröffentlichen – Checkliste
+## Web-App (GitHub Pages)
+
+Jeder Push auf `main` baut die Web-Version und veröffentlicht sie unter
+**https://sifufab.github.io/HO-Tracker/** (Workflow `.github/workflows/deploy-pages.yml`).
+
+- Installierbar als App: iPhone (Safari) → Teilen → „Zum Home-Bildschirm“; Android (Chrome) → Menü → „App installieren“.
+- Funktioniert nach dem ersten Aufruf auch offline (Service Worker in `public/sw.js`).
+- Daten liegen nur im Browser des Geräts (localStorage). Browserdaten löschen = Einträge weg.
+- Einmalige Einrichtung: Repo öffentlich (GitHub Pages ist für private Repos nur mit GitHub Pro verfügbar),
+  dann Settings → Pages → Source: **GitHub Actions**.
+- Der Pfad `/HO-Tracker` ist in `app.json` unter `experiments.baseUrl` hinterlegt; bei Umbenennung des Repos anpassen.
+
+## Veröffentlichen in den Stores – Checkliste
 
 1. **Konten:** Expo-Konto (gratis), Google Play Console (einmalig 25 USD), Apple Developer Program (99 USD/Jahr).
    iOS-Builds laufen über EAS in der Cloud, ein Mac ist nicht nötig.
