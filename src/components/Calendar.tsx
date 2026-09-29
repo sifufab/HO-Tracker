@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { daysInMonth, formatNumber, homeHours, isoDate, targetHours, weekdayIndex, type Days, type Settings } from '../logic';
-import { colors, WEEKDAYS } from '../theme';
+import { useI18n } from '../i18n';
+import { daysInMonth, homeHours, isoDate, targetHours, weekdayIndex, type Days, type Settings } from '../logic';
+import { colors } from '../theme';
 
 type Props = {
   year: number;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function Calendar({ year, month, settings, days, onPressDay }: Props) {
+  const { t } = useI18n();
   const cells: (number | null)[] = Array(weekdayIndex(year, month, 1)).fill(null);
   for (let day = 1; day <= daysInMonth(year, month); day++) cells.push(day);
   while (cells.length % 7) cells.push(null);
@@ -19,7 +21,7 @@ export default function Calendar({ year, month, settings, days, onPressDay }: Pr
   return (
     <View>
       <View style={styles.row}>
-        {WEEKDAYS.map((name) => (
+        {t.weekdays.map((name) => (
           <Text key={name} style={styles.weekday}>
             {name}
           </Text>
@@ -47,6 +49,7 @@ function DayCell({ day, target, entry, onPress }: {
   entry: Days[string] | undefined;
   onPress: () => void;
 }) {
+  const { t, num } = useI18n();
   if (target <= 0) {
     return (
       <View style={styles.cell}>
@@ -57,11 +60,11 @@ function DayCell({ day, target, entry, onPress }: {
   const home = homeHours(entry, target);
   const absent = entry?.kind === 'absent';
   const background = absent ? colors.absent : home >= target ? colors.home : home > 0 ? colors.homePartial : colors.office;
-  const label = absent ? 'frei' : home > 0 ? `${formatNumber(home)} h` : '';
+  const label = absent ? t.absentShort : home > 0 ? `${num(home)} h` : '';
 
   return (
     <Pressable style={styles.cell} onPress={onPress} accessibilityRole="button"
-      accessibilityLabel={`Tag ${day}${label ? `, ${label}` : ''}`}>
+      accessibilityLabel={`${t.dayA11y(day)}${label ? `, ${label}` : ''}`}>
       <View style={[styles.dayBox, { backgroundColor: background }]}>
         <Text style={[styles.dayNumber, home >= target && !absent && { color: '#fff' }]}>{day}</Text>
         {label !== '' && <Text style={[styles.dayLabel, home >= target && !absent && { color: '#fff' }]}>{label}</Text>}

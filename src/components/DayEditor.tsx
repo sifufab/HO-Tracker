@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { formatNumber, parseNumber, type DayEntry } from '../logic';
+import { useI18n } from '../i18n';
+import { parseNumber, type DayEntry } from '../logic';
 import { colors } from '../theme';
 
 type Props = {
@@ -13,7 +14,8 @@ type Props = {
 };
 
 export default function DayEditor({ title, target, entry, onSave, onClose }: Props) {
-  const [hoursText, setHoursText] = useState(entry?.kind === 'home' ? formatNumber(entry.hours) : '');
+  const { t, num } = useI18n();
+  const [hoursText, setHoursText] = useState(entry?.kind === 'home' ? num(entry.hours) : '');
 
   const hours = parseNumber(hoursText);
   const hoursValid = hours !== null && hours > 0 && hours <= target;
@@ -28,25 +30,25 @@ export default function DayEditor({ title, target, entry, onSave, onClose }: Pro
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>Soll: {formatNumber(target)} h</Text>
+          <Text style={styles.subtitle}>{t.target(num(target))}</Text>
 
-          <Option label="Büro" color={colors.office} onPress={() => choose(undefined)} />
-          <Option label={`Ganzer Tag Homeoffice (${formatNumber(target)} h)`} color={colors.home} textColor="#fff"
+          <Option label={t.office} color={colors.office} onPress={() => choose(undefined)} />
+          <Option label={t.fullDayHome(num(target))} color={colors.home} textColor="#fff"
             onPress={() => choose({ kind: 'home', hours: target })} />
-          <Option label="Abwesend (Urlaub, Feiertag, krank)" color={colors.absent} onPress={() => choose({ kind: 'absent' })} />
+          <Option label={t.absent} color={colors.absent} onPress={() => choose({ kind: 'absent' })} />
 
-          <Text style={styles.section}>Teilweise Homeoffice</Text>
+          <Text style={styles.section}>{t.partialHome}</Text>
           <View style={styles.partialRow}>
             <TextInput style={[styles.input, hoursText !== '' && !hoursValid && styles.inputError]}
               value={hoursText} onChangeText={setHoursText} keyboardType="decimal-pad"
-              placeholder="Stunden, z. B. 4" accessibilityLabel="Homeoffice-Stunden" />
-            <Pressable style={[styles.saveButton, !hoursValid && styles.disabled]} disabled={!hoursValid}
+              placeholder={t.hoursPlaceholder} accessibilityLabel={t.homeHoursA11y} />
+            <Pressable accessibilityRole="button" style={[styles.saveButton, !hoursValid && styles.disabled]} disabled={!hoursValid}
               onPress={() => hours !== null && choose({ kind: 'home', hours })}>
-              <Text style={styles.saveText}>Speichern</Text>
+              <Text style={styles.saveText}>{t.save}</Text>
             </Pressable>
           </View>
           {hoursText !== '' && !hoursValid && (
-            <Text style={styles.error}>Bitte eine Zahl zwischen 0 und {formatNumber(target)} eingeben.</Text>
+            <Text style={styles.error}>{t.hoursRangeError(num(target))}</Text>
           )}
         </Pressable>
       </Pressable>

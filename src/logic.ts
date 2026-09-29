@@ -3,9 +3,13 @@
 /** Target hours per weekday, index 0 = Monday ... 6 = Sunday. */
 export type WeekHours = [number, number, number, number, number, number, number];
 
+export type Language = 'de' | 'en';
+
 export type Settings = {
   limitPercent: number;
   weekHours: WeekHours;
+  /** 'auto' follows the device language. */
+  language: 'auto' | Language;
 };
 
 /** A day without an entry is an office day. */
@@ -16,6 +20,7 @@ export type Days = Record<string, DayEntry>;
 export const DEFAULT_SETTINGS: Settings = {
   limitPercent: 30,
   weekHours: [8.5, 8.5, 8.5, 8.5, 4.5, 0, 0],
+  language: 'auto',
 };
 
 export type MonthStats = {
@@ -72,7 +77,14 @@ export function parseNumber(text: string): number | null {
   return text.trim() !== '' && Number.isFinite(value) ? value : null;
 }
 
-/** Formats hours/percent for display: at most two decimals, German decimal comma. */
-export function formatNumber(value: number): string {
-  return (Math.round(value * 100) / 100).toString().replace('.', ',');
+/** Formats hours/percent for display: at most two decimals, decimal comma in German. */
+export function formatNumber(value: number, language: Language = 'de'): string {
+  const text = (Math.round(value * 100) / 100).toString();
+  return language === 'de' ? text.replace('.', ',') : text;
+}
+
+/** Picks the app language: explicit setting, else German for German device locales, else English. */
+export function resolveLanguage(setting: Settings['language'], deviceLocale: string): Language {
+  if (setting !== 'auto') return setting;
+  return deviceLocale.toLowerCase().startsWith('de') ? 'de' : 'en';
 }

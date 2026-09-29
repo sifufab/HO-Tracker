@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { formatNumber, parseNumber, type Settings, type WeekHours } from '../logic';
-import { colors, WEEKDAYS } from '../theme';
+import { useI18n } from '../i18n';
+import { parseNumber, type Settings, type WeekHours } from '../logic';
+import { colors } from '../theme';
+
+const LANGUAGE_OPTIONS: Settings['language'][] = ['auto', 'de', 'en'];
+// Language names stay in their own language so users can always find theirs.
+const LANGUAGE_NAMES = { de: 'Deutsch', en: 'English' };
 
 type Props = {
   settings: Settings;
@@ -12,8 +17,10 @@ type Props = {
 };
 
 export default function SettingsModal({ settings, onSave, onClose, onPrivacyOptions }: Props) {
-  const [limitText, setLimitText] = useState(formatNumber(settings.limitPercent));
-  const [hourTexts, setHourTexts] = useState(settings.weekHours.map(formatNumber));
+  const { t, num } = useI18n();
+  const [language, setLanguage] = useState(settings.language);
+  const [limitText, setLimitText] = useState(num(settings.limitPercent));
+  const [hourTexts, setHourTexts] = useState(settings.weekHours.map(num));
 
   const limit = parseNumber(limitText);
   const hours = hourTexts.map(parseNumber);
@@ -23,7 +30,7 @@ export default function SettingsModal({ settings, onSave, onClose, onPrivacyOpti
 
   const save = () => {
     if (!valid) return;
-    onSave({ limitPercent: limit!, weekHours: hours as WeekHours });
+    onSave({ limitPercent: limit!, weekHours: hours as WeekHours, language });
     onClose();
   };
 
@@ -32,39 +39,51 @@ export default function SettingsModal({ settings, onSave, onClose, onPrivacyOpti
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <ScrollView contentContainerStyle={{ gap: 10 }} keyboardShouldPersistTaps="handled">
-            <Text style={styles.title}>Einstellungen</Text>
+            <Text style={styles.title}>{t.settings}</Text>
 
-            <Text style={styles.section}>Maximaler Homeoffice-Anteil</Text>
+            <Text style={styles.section}>{t.language}</Text>
+            <View style={styles.segments}>
+              {LANGUAGE_OPTIONS.map((option) => (
+                <Pressable key={option} accessibilityRole="button" accessibilityState={{ selected: language === option }}
+                  style={[styles.segment, language === option && styles.segmentActive]} onPress={() => setLanguage(option)}>
+                  <Text style={[styles.segmentText, language === option && styles.segmentTextActive]}>
+                    {option === 'auto' ? t.languageAuto : LANGUAGE_NAMES[option]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.section}>{t.maxHomeShare}</Text>
             <View style={styles.row}>
               <TextInput style={[styles.input, !limitValid && styles.inputError]} value={limitText}
-                onChangeText={setLimitText} keyboardType="decimal-pad" accessibilityLabel="Maximaler Homeoffice-Anteil in Prozent" />
+                onChangeText={setLimitText} keyboardType="decimal-pad" accessibilityLabel={t.maxHomeShareA11y} />
               <Text style={styles.unit}>%</Text>
             </View>
 
-            <Text style={styles.section}>Soll-Stunden pro Wochentag</Text>
-            {WEEKDAYS.map((name, i) => (
+            <Text style={styles.section}>{t.hoursPerWeekday}</Text>
+            {t.weekdays.map((name, i) => (
               <View key={name} style={styles.row}>
                 <Text style={styles.label}>{name}</Text>
                 <TextInput style={[styles.input, !hoursValid[i] && styles.inputError]} value={hourTexts[i]}
                   onChangeText={(text) => setHourTexts((prev) => prev.map((t, j) => (j === i ? text : t)))}
-                  keyboardType="decimal-pad" accessibilityLabel={`Soll-Stunden ${name}`} />
+                  keyboardType="decimal-pad" accessibilityLabel={t.hoursPerWeekdayA11y(name)} />
                 <Text style={styles.unit}>h</Text>
               </View>
             ))}
-            <Text style={styles.hint}>Tage mit 0 h gelten als arbeitsfrei.</Text>
+            <Text style={styles.hint}>{t.zeroHoursHint}</Text>
 
             {Platform.OS !== 'web' && (
-              <Pressable onPress={onPrivacyOptions}>
-                <Text style={styles.link}>Datenschutz-Einstellungen für Werbung</Text>
+              <Pressable accessibilityRole="button" onPress={onPrivacyOptions}>
+                <Text style={styles.link}>{t.adPrivacy}</Text>
               </Pressable>
             )}
 
             <View style={[styles.row, { justifyContent: 'flex-end', marginTop: 8 }]}>
-              <Pressable style={styles.secondaryButton} onPress={onClose}>
-                <Text style={styles.secondaryText}>Abbrechen</Text>
+              <Pressable accessibilityRole="button" style={styles.secondaryButton} onPress={onClose}>
+                <Text style={styles.secondaryText}>{t.cancel}</Text>
               </Pressable>
-              <Pressable style={[styles.primaryButton, !valid && styles.disabled]} disabled={!valid} onPress={save}>
-                <Text style={styles.primaryText}>Speichern</Text>
+              <Pressable accessibilityRole="button" style={[styles.primaryButton, !valid && styles.disabled]} disabled={!valid} onPress={save}>
+                <Text style={styles.primaryText}>{t.save}</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -91,4 +110,9 @@ const styles = StyleSheet.create({
   secondaryButton: { paddingHorizontal: 16, paddingVertical: 10 },
   secondaryText: { color: colors.primary, fontWeight: '600' },
   disabled: { opacity: 0.4 },
+  segments: { flexDirection: 'row', borderWidth: 1, borderColor: colors.border, borderRadius: 10, overflow: 'hidden' },
+  segment: { flex: 1, paddingVertical: 9, alignItems: 'center' },
+  segmentActive: { backgroundColor: colors.primary },
+  segmentText: { color: colors.text, fontWeight: '600' },
+  segmentTextActive: { color: '#fff' },
 });

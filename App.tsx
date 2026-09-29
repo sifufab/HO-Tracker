@@ -9,9 +9,10 @@ import Calendar from './src/components/Calendar';
 import DayEditor from './src/components/DayEditor';
 import SettingsModal from './src/components/SettingsModal';
 import StatsCard from './src/components/StatsCard';
-import { isoDate, monthStats, targetHours, type DayEntry } from './src/logic';
+import { deviceLocale, I18nProvider, useI18n } from './src/i18n';
+import { isoDate, monthStats, resolveLanguage, targetHours, type DayEntry } from './src/logic';
 import { loadData, saveData, type AppData } from './src/storage';
-import { colors, MONTHS } from './src/theme';
+import { colors } from './src/theme';
 
 export default function App() {
   return (
@@ -25,20 +26,13 @@ export default function App() {
 }
 
 function Tracker() {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth() + 1);
   const [data, setData] = useState<AppData | null>(null);
-  const [editDay, setEditDay] = useState<number | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     loadData().then(setData);
   }, []);
 
-  const stats = useMemo(() => data && monthStats(data.settings, data.days, year, month), [data, year, month]);
-
-  if (!data || !stats) {
+  if (!data) {
     return <ActivityIndicator style={{ flex: 1 }} />;
   }
 
@@ -46,6 +40,23 @@ function Tracker() {
     setData(next);
     saveData(next).catch(() => {});
   };
+
+  return (
+    <I18nProvider lang={resolveLanguage(data.settings.language, deviceLocale())}>
+      <TrackerScreen data={data} update={update} />
+    </I18nProvider>
+  );
+}
+
+function TrackerScreen({ data, update }: { data: AppData; update: (next: AppData) => void }) {
+  const { t } = useI18n();
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [editDay, setEditDay] = useState<number | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const stats = useMemo(() => monthStats(data.settings, data.days, year, month), [data, year, month]);
 
   const setEntry = (day: number, entry: DayEntry | undefined) => {
     const days = { ...data.days };
@@ -67,15 +78,15 @@ function Tracker() {
         <View style={styles.header}>
           <Text style={styles.appTitle}>HO-Tracker</Text>
           <Pressable onPress={() => setShowSettings(true)} accessibilityRole="button" hitSlop={10}>
-            <Text style={styles.settingsLink}>Einstellungen</Text>
+            <Text style={styles.settingsLink}>{t.settings}</Text>
           </Pressable>
         </View>
 
         <View style={styles.card}>
           <View style={styles.nav}>
-            <NavButton label="‹" onPress={() => shiftMonth(-1)} accessibilityLabel="Vorheriger Monat" />
-            <Text style={styles.monthTitle}>{MONTHS[month - 1]} {year}</Text>
-            <NavButton label="›" onPress={() => shiftMonth(1)} accessibilityLabel="Nächster Monat" />
+            <NavButton label="‹" onPress={() => shiftMonth(-1)} accessibilityLabel={t.previousMonth} />
+            <Text style={styles.monthTitle}>{t.months[month - 1]} {year}</Text>
+            <NavButton label="›" onPress={() => shiftMonth(1)} accessibilityLabel={t.nextMonth} />
           </View>
           <Calendar year={year} month={month} settings={data.settings} days={data.days} onPressDay={setEditDay} />
           <Legend />
@@ -88,7 +99,7 @@ function Tracker() {
 
       {editDay !== null && (
         <DayEditor
-          title={`${editDay}. ${MONTHS[month - 1]} ${year}`}
+          title={t.dayTitle(editDay, t.months[month - 1], year)}
           target={targetHours(data.settings, year, month, editDay)}
           entry={data.days[isoDate(year, month, editDay)]}
           onSave={(entry) => setEntry(editDay, entry)}
@@ -116,11 +127,12 @@ function NavButton({ label, onPress, accessibilityLabel }: { label: string; onPr
 }
 
 function Legend() {
+  const { t } = useI18n();
   const items = [
-    { label: 'Büro', color: colors.office },
-    { label: 'HO ganz', color: colors.home },
-    { label: 'HO teilweise', color: colors.homePartial },
-    { label: 'Abwesend', color: colors.absent },
+    { label: t.legendOffice, color: colors.office },
+    { label: t.legendHomeFull, color: colors.home },
+    { label: t.legendHomePartial, color: colors.homePartial },
+    { label: t.legendAbsent, color: colors.absent },
   ];
   return (
     <View style={styles.legend}>

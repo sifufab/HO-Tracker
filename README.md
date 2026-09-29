@@ -10,6 +10,7 @@ Gebaut mit [Expo](https://expo.dev) / React Native und TypeScript.
 - Maximaler Homeoffice-Anteil einstellbar (Standard: 30 %)
 - Anzeige: Soll-Arbeitszeit, HO-Stunden, HO-Anteil, verbleibendes HO-Budget in Stunden
 - Abwesende Tage zählen nicht zur Soll-Arbeitszeit
+- Sprachen: Deutsch und Englisch (automatisch nach Gerätesprache oder in den Einstellungen wählbar); Texte in `src/i18n.tsx`
 - Daten bleiben lokal auf dem Gerät
 - Werbebanner (Google AdMob) inkl. DSGVO-Einwilligung (Google UMP); im Web keine Werbung
 

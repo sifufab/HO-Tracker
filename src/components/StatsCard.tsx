@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { formatNumber, type MonthStats } from '../logic';
+import { useI18n } from '../i18n';
+import { type MonthStats } from '../logic';
 import { colors } from '../theme';
 
 export default function StatsCard({ stats, limitPercent }: { stats: MonthStats; limitPercent: number }) {
+  const { t, num } = useI18n();
   const statusColor = stats.overLimit ? colors.danger : colors.ok;
   const fill = Math.min(stats.percent, 100);
   const marker = Math.min(limitPercent, 100);
@@ -11,8 +13,8 @@ export default function StatsCard({ stats, limitPercent }: { stats: MonthStats; 
   return (
     <View style={styles.card}>
       <View style={styles.headline}>
-        <Text style={[styles.percent, { color: statusColor }]}>{formatNumber(Math.round(stats.percent * 10) / 10)} %</Text>
-        <Text style={styles.limit}>Homeoffice-Anteil (max. {formatNumber(limitPercent)} %)</Text>
+        <Text style={[styles.percent, { color: statusColor }]}>{num(Math.round(stats.percent * 10) / 10)} %</Text>
+        <Text style={styles.limit}>{t.homeShare(num(limitPercent))}</Text>
       </View>
 
       <View style={styles.bar} accessibilityRole="progressbar"
@@ -21,12 +23,12 @@ export default function StatsCard({ stats, limitPercent }: { stats: MonthStats; 
         <View style={[styles.marker, { left: `${marker}%` }]} />
       </View>
 
-      <Row label="Soll-Arbeitszeit" value={`${formatNumber(stats.total)} h`} />
-      <Row label="Homeoffice" value={`${formatNumber(stats.home)} h`} />
+      <Row label={t.targetHours} value={`${num(stats.total)} h`} />
+      <Row label={t.homeOffice} value={`${num(stats.home)} h`} />
       <Text style={[styles.budget, { color: statusColor }]}>
         {stats.remaining >= 0
-          ? `Noch ${formatNumber(stats.remaining)} h Homeoffice möglich`
-          : `Limit um ${formatNumber(-stats.remaining)} h überschritten`}
+          ? t.remaining(num(stats.remaining))
+          : t.exceeded(num(-stats.remaining))}
       </Text>
     </View>
   );
