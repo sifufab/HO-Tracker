@@ -28,7 +28,8 @@
     "web": "expo start --web",
     "test": "node --test src/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:standalone": "node scripts/build-standalone.mjs"
   },
   "private": true
 }

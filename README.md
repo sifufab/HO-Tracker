@@ -39,6 +39,17 @@ Jeder Push auf `main` baut die Web-Version und veröffentlicht sie unter
   dann Settings → Pages → Source: **GitHub Actions**.
 - Der Pfad `/HO-Tracker` ist in `app.json` unter `experiments.baseUrl` hinterlegt; bei Umbenennung des Repos anpassen.
 
+## Ohne Server: eine einzelne HTML-Datei
+
+Falls `github.io` gesperrt ist (z. B. im Firmennetz): `standalone/HO-Tracker.html` herunterladen
+(auf GitHub die Datei öffnen → „Download raw file“) und per Doppelklick im Browser öffnen.
+Es braucht keinen Server, keine Installation und keine Internetverbindung.
+
+- Die Einträge liegen im Browser-Speicher dieser Datei. Datei nicht verschieben oder umbenennen und immer im selben Browser öffnen,
+  sonst erscheint der Kalender leer (Firefox trennt Daten nach Dateipfad).
+- Neu erzeugen nach Code-Änderungen: `npm run build:standalone`.
+- Nicht enthalten: Installation als App, Offline-Cache (unnötig, die Datei ist lokal), Werbung.
+
 ## Veröffentlichen in den Stores – Checkliste
 
 1. **Konten:** Expo-Konto (gratis), Google Play Console (einmalig 25 USD), Apple Developer Program (99 USD/Jahr).
@@ -52,7 +63,3 @@ Jeder Push auf `main` baut die Web-Version und veröffentlicht sie unter
 4. **Datenschutzerklärung:** Pflicht in beiden Stores, sobald Werbung eingebunden ist (öffentliche URL).
 5. **Store-Angaben:** Apple „App Privacy“ und Google „Data safety“ ausfüllen (AdMob erhebt Geräte-IDs/Nutzungsdaten).
 6. **Build & Upload:** `npx eas-cli@latest build --profile production --platform all`, dann `npx eas-cli@latest submit`.
-
-## Desktop-Version
-
-`desktop/homeoffice_tracker.py` ist die ursprüngliche Python/Tkinter-Version (ohne Teil-Tage und ohne einstellbares Limit).
